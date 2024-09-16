@@ -17,8 +17,8 @@ public class TestEntity : MonoBehaviour, ISpatialEntity
         return transform.position;
     }
 
-    public Transform GetTransform()
+    public string GetDebugName()
     {
-        return transform;
+        return name;
     }
 }
