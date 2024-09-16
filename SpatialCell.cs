@@ -12,6 +12,9 @@ public class SpatialCell
     
     public readonly List<ISpatialEntity> entities = new();
     public Vector2Int Coordinates { get; private set; }
+    public Vector3 Center { get; private set; }
+    public Vector3 Min { get; private set; }
+    public Vector3 Max { get; private set; }
     public int Size { get; private set; }
     public SpatialGrid Grid { get; private set; }
 
@@ -20,6 +23,31 @@ public class SpatialCell
         Coordinates = coordinates;
         Size = grid.CellSize;
         Grid = grid;
+        float halfSize = Size / 2f;
+
+        switch (grid.Axis)
+        {
+            case SpatialGridAxis.XZ:
+                Min = new Vector3(coordinates.x, 0f, coordinates.y);
+                Max = new Vector3(coordinates.x + Size, 0f, coordinates.y + Size);
+                Center = new Vector3(coordinates.x + halfSize, 0f, coordinates.y + halfSize);
+                break;
+            
+            case SpatialGridAxis.XY:
+                Min = new Vector3(coordinates.x, coordinates.y, 0f);
+                Max = new Vector3(coordinates.x + Size, coordinates.y + Size, 0f);
+                Center = new Vector3(coordinates.x + halfSize, coordinates.y + halfSize, 0f);
+                break;
+            
+            case SpatialGridAxis.YZ:
+                Min = new Vector3(0f, coordinates.x, coordinates.y);
+                Max = new Vector3(0f, coordinates.x + Size, coordinates.y + Size);
+                Center = new Vector3(0f, coordinates.x + halfSize, coordinates.y + halfSize);
+                break;
+            
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
     }
 
     public void AddEntity(ISpatialEntity entity)

@@ -14,7 +14,7 @@ public class SpatialGrid : ScriptableObject
     [Range(1, 20)][SerializeField] private int cellSize = 1;
     [SerializeField] private bool autoInitialize = true;
 
-    private readonly Dictionary<Vector2Int, SpatialCell> _grid = new();
+    [NonSerialized] private readonly Dictionary<Vector2Int, SpatialCell> _grid = new();
     private Func<Vector3, Vector2Int> _getCoordinates;
     [NonSerialized] private bool _isInit;
     
@@ -100,6 +100,31 @@ public class SpatialGrid : ScriptableObject
     
     #region Grid Methods
 
+    public List<SpatialCell> GetCellsInRangeFromPoint(Vector3 point, float range)
+    {
+        int cellRange = Mathf.CeilToInt(range / cellSize);
+        Vector2Int centerCell = GetCellCoordinate(point);
+        List<SpatialCell> inRange = new List<SpatialCell>();
+
+        for (int i = -cellRange; i <= cellRange; i++)
+        {
+            for (int j = -cellRange; j <= cellRange; j++)
+            {
+                Vector2Int coordinate = new Vector2Int(centerCell.x + i, centerCell.y + j);
+                var cell = GetOrCreateCell(coordinate);
+                float clampedX = Mathf.Max(cell.Min.x, Mathf.Min(point.x, cell.Max.x));
+                float clampedZ = Mathf.Max(cell.Min.z, Mathf.Min(point.z, cell.Max.z));
+                float distance = Vector3.Distance(new Vector3(clampedX, point.y, clampedZ), point);
+                if (distance <= range)
+                {
+                    inRange.Add(cell);
+                }
+            }
+        }
+
+        return inRange;
+    }
+
     public Vector2Int GetCellCoordinate(Vector3 point)
     {
         return _getCoordinates(point);
@@ -116,17 +141,8 @@ public class SpatialGrid : ScriptableObject
     public void RefreshEntity(ISpatialEntity entity)
     {
         Vector2Int cellCoord = GetCellCoordinate(entity.GetPosition());
-
-        bool added = _grid.TryAdd(cellCoord, new SpatialCell(cellCoord, this));
-        var cell = _grid[cellCoord];
+        var cell = GetOrCreateCell(cellCoord);
         cell.AddEntity(entity);
-
-#if UNITY_EDITOR
-        if (added && requireDebugDataDisplay)
-        {
-            debugGrid.Add(cell);
-        }
-#endif
     }
 
     public void RemoveEntity(ISpatialEntity entity)
@@ -139,6 +155,26 @@ public class SpatialGrid : ScriptableObject
         
         var cell = _grid[cellCoord];
         cell.RemoveEntity(entity);
+    }
+
+    private SpatialCell GetOrCreateCell(Vector2Int coordinates)
+    {
+        if (_grid.TryGetValue(coordinates, out var needed))
+        {
+            return needed;
+        }
+
+        _grid.Add(coordinates, new SpatialCell(coordinates, this));
+        var cell = _grid[coordinates];
+
+#if UNITY_EDITOR
+        if (requireDebugDataDisplay)
+        {
+            debugGrid.Add(cell);
+        }
+#endif
+
+        return cell;
     }
 
     #endregion

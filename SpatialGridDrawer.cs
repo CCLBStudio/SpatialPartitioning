@@ -7,6 +7,15 @@ public class SpatialGridDrawer : MonoBehaviour
     
     #region Editor Variables
 #if UNITY_EDITOR
+    public static string GridProperty => nameof(grid);
+    public static string DrawGizmosOnProperty => nameof(drawGizmosOn);
+    public static string GridColorProperty => nameof(gridColor);
+    public static string ShowExistingCellsProperty => nameof(showExistingCells);
+    public static string ExistingCellsColorProperty => nameof(existingCellsColor);
+    public static string GizmoGridSizeProperty => nameof(gizmoGridSize);
+    public static string ArrowAngleProperty => nameof(arrowAngle);
+    public static string ArrowSizeProperty => nameof(arrowSize);
+    
     [Header("Gizmos (Editor Only)")]
     [SerializeField] private GizmosEvent drawGizmosOn = GizmosEvent.OnDrawGizmosSelected;
     [SerializeField] private Color gridColor = Color.cyan;
@@ -20,7 +29,7 @@ public class SpatialGridDrawer : MonoBehaviour
     [HideInInspector][SerializeField] private Vector3 normalizedForwardAxis = Vector3.forward;
     [HideInInspector][SerializeField] private Vector3 normalizedOffsetAxis = new Vector3(1f, 0f, 1f);
     
-    private enum GizmosEvent {None, OnDrawGizmos, OnDrawGizmosSelected}
+    public enum GizmosEvent {None, OnDrawGizmos, OnDrawGizmosSelected}
 #endif
     #endregion
 
@@ -48,6 +57,11 @@ public class SpatialGridDrawer : MonoBehaviour
 
     private void OnValidate()
     {
+        if (!grid)
+        {
+            return;
+        }
+        
         switch (grid.Axis)
         {
             case SpatialGridAxis.XZ:
