@@ -97,7 +97,7 @@ public class SpatialGridDrawer : MonoBehaviour
         int halfSize = Mathf.FloorToInt(gizmoGridSize / 2f);
         int actualSize = halfSize * 2;
 
-        Vector3 position = transform.position;
+        Vector3 position = grid.ClampPointToCoordinates(transform.position);
         Vector3 startPos = position - halfSize * (normalizedOffsetAxis * grid.CellSize);
         Vector3 sideAxis = normalizedSideAxis * grid.CellSize;
         Vector3 forwardAxis = normalizedForwardAxis * grid.CellSize;

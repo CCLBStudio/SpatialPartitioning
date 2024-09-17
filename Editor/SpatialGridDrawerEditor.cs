@@ -1,5 +1,6 @@
 using System;
 using UnityEditor;
+using UnityEngine;
 
 [CustomEditor(typeof(SpatialGridDrawer))]
 public class SpatialGridDrawerEditor : Editor
@@ -28,7 +29,7 @@ public class SpatialGridDrawerEditor : Editor
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
-        
+        DrawScriptField();
         EditorGUI.BeginChangeCheck();
         EditorGUILayout.PropertyField(_grid);
         EditorGUILayout.PropertyField(_drawGizmosOn);
@@ -58,5 +59,20 @@ public class SpatialGridDrawerEditor : Editor
         {
             serializedObject.ApplyModifiedProperties();
         }
+    }
+    
+    private void DrawScriptField()
+    {
+        GUI.enabled = false;
+        if (serializedObject.targetObject is MonoBehaviour behaviour)
+        {
+            EditorGUILayout.ObjectField("Script", MonoScript.FromMonoBehaviour(behaviour), typeof(MonoBehaviour), false);
+        }
+        else
+        {
+            EditorGUILayout.ObjectField("Script", MonoScript.FromScriptableObject((ScriptableObject)serializedObject.targetObject), typeof(ScriptableObject), false);
+        }
+        GUI.enabled = true;
+        GUILayout.Space(5);
     }
 }

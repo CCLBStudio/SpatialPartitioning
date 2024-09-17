@@ -16,6 +16,8 @@ public class SpatialGrid : ScriptableObject
 
     [NonSerialized] private readonly Dictionary<Vector2Int, SpatialCell> _grid = new();
     private Func<Vector3, Vector2Int> _getCoordinates;
+    private Func<Vector3, Vector3> _clampPointToCoordinates;
+    private Func<Vector3, SpatialCell, Vector3> _getClampedPointForCellCheck;
     [NonSerialized] private bool _isInit;
     
     #if UNITY_EDITOR
@@ -30,6 +32,12 @@ public class SpatialGrid : ScriptableObject
 
     private void OnEnable()
     {
+        if (!Application.isPlaying)
+        {
+            Initialize();
+            return;
+        }
+        
         if (!autoInitialize)
         {
             return;
@@ -50,6 +58,8 @@ public class SpatialGrid : ScriptableObject
         {
             ClearGrid();
             ComputeCoordinatesDelegate();
+            ComputeClampPointForRangeCheck();
+            ComputeClampPointToCoordinatesDelegate();
         }
     }
 #endif
@@ -67,6 +77,8 @@ public class SpatialGrid : ScriptableObject
 
         _isInit = true;
         ComputeCoordinatesDelegate();
+        ComputeClampPointForRangeCheck();
+        ComputeClampPointToCoordinatesDelegate();
     }
 
     private void ComputeCoordinatesDelegate()
@@ -96,6 +108,48 @@ public class SpatialGrid : ScriptableObject
         }
     }
 
+    private void ComputeClampPointToCoordinatesDelegate()
+    {
+        switch (axis)
+        {
+            case SpatialGridAxis.XZ:
+                _clampPointToCoordinates = point => new Vector3(Mathf.Floor(point.x / cellSize) * cellSize, point.y, Mathf.Floor(point.z / cellSize) * cellSize);
+                break;
+            
+            case SpatialGridAxis.XY:
+                _clampPointToCoordinates = point => new Vector3(Mathf.Floor(point.x / cellSize) * cellSize, Mathf.Floor(point.y / cellSize) * cellSize, point.z);
+                break;
+            
+            case SpatialGridAxis.YZ:
+                _clampPointToCoordinates = point => new Vector3(point.x, Mathf.Floor(point.y / cellSize) * cellSize, Mathf.Floor(point.z / cellSize) * cellSize);
+                break;
+            
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+    
+    private void ComputeClampPointForRangeCheck()
+    {
+        switch (axis)
+        {
+            case SpatialGridAxis.XZ:
+                _getClampedPointForCellCheck = (point, cell) => new Vector3(Mathf.Max(cell.Min.x, Mathf.Min(point.x, cell.Max.x)), point.y, Mathf.Max(cell.Min.z, Mathf.Min(point.z, cell.Max.z)));
+                break;
+            
+            case SpatialGridAxis.XY:
+                _getClampedPointForCellCheck = (point, cell) => new Vector3(Mathf.Max(cell.Min.x, Mathf.Min(point.x, cell.Max.x)), Mathf.Max(cell.Min.y, Mathf.Min(point.y, cell.Max.y)), point.z);
+                break;
+            
+            case SpatialGridAxis.YZ:
+                _getClampedPointForCellCheck = (point, cell) => new Vector3(point.x, Mathf.Max(cell.Min.y, Mathf.Min(point.y, cell.Max.y)), Mathf.Max(cell.Min.z, Mathf.Min(point.z, cell.Max.z)));
+                break;
+            
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+
     #endregion
     
     #region Grid Methods
@@ -112,9 +166,9 @@ public class SpatialGrid : ScriptableObject
             {
                 Vector2Int coordinate = new Vector2Int(centerCell.x + i, centerCell.y + j);
                 var cell = GetOrCreateCell(coordinate);
-                float clampedX = Mathf.Max(cell.Min.x, Mathf.Min(point.x, cell.Max.x));
-                float clampedZ = Mathf.Max(cell.Min.z, Mathf.Min(point.z, cell.Max.z));
-                float distance = Vector3.Distance(new Vector3(clampedX, point.y, clampedZ), point);
+                Vector3 clampedPoint = GetClampedPointForCellCheck(point, cell);
+                float distance = Vector3.Distance(clampedPoint, point);
+                
                 if (distance <= range)
                 {
                     inRange.Add(cell);
@@ -128,6 +182,16 @@ public class SpatialGrid : ScriptableObject
     public Vector2Int GetCellCoordinate(Vector3 point)
     {
         return _getCoordinates(point);
+    }
+
+    public Vector3 ClampPointToCoordinates(Vector3 point)
+    {
+        return _clampPointToCoordinates(point);
+    }
+
+    private Vector3 GetClampedPointForCellCheck(Vector3 point, SpatialCell cell)
+    {
+        return _getClampedPointForCellCheck(point, cell);
     }
 
     public void ClearGrid()
