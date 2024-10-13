@@ -1,6 +1,4 @@
-using System;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 public class SimpleEnemy : MonoBehaviour, ISpatialEntity
 {
@@ -32,6 +30,11 @@ public class SimpleEnemy : MonoBehaviour, ISpatialEntity
 
     public void TakeDamages(int amount)
     {
+        if (_isDead)
+        {
+            return;
+        }
+        
         health -= amount;
         if (health <= 0)
         {

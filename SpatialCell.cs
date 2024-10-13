@@ -10,14 +10,16 @@ public class SpatialCell
     [SerializeField] private List<string> debugEntitiesDisplay = new();
     private Dictionary<ISpatialEntity, string> _entityNamesHash = new();
     #endif
-    
-    public readonly List<ISpatialEntity> entities = new();
+
+    public List<ISpatialEntity> Entities => GetEntities();
     public Vector2Int Coordinates { get; private set; }
     public Vector3 Center { get; private set; }
     public Vector3 Min { get; private set; }
     public Vector3 Max { get; private set; }
     public int Size { get; private set; }
     public SpatialGrid Grid { get; private set; }
+    
+    private List<ISpatialEntity> _entities = new();
 
     public SpatialCell(Vector2Int coordinates, SpatialGrid grid)
     {
@@ -53,7 +55,14 @@ public class SpatialCell
 
     public IEnumerable<T> GetEntitiesOfType<T>() where T : ISpatialEntity
     {
-        return entities.OfType<T>();
+        CleanNullEntities();
+        return _entities.OfType<T>();
+    }
+    
+    private List<ISpatialEntity> GetEntities()
+    {
+        CleanNullEntities();
+        return _entities;
     }
 
     public void AddEntity(ISpatialEntity entity)
@@ -64,7 +73,7 @@ public class SpatialCell
         }
 
         entity.CurrentCell?.RemoveEntity(entity);
-        entities.Add(entity);
+        _entities.Add(entity);
         entity.CurrentCell = this;
         
 #if UNITY_EDITOR
@@ -84,7 +93,7 @@ public class SpatialCell
             return;
         }
         
-        entities.Remove(entity);
+        _entities.Remove(entity);
         entity.CurrentCell = null;
         
 #if UNITY_EDITOR
@@ -95,5 +104,49 @@ public class SpatialCell
         _entityNamesHash.Remove(entity);
         debugEntitiesDisplay = new List<string>(_entityNamesHash.Values);
 #endif
+    }
+
+    public void CleanNullEntities()
+    {
+        if (!Grid.AutomaticCheckForNullEntities)
+        {
+            return;
+        }
+        
+        List<ISpatialEntity> result = new List<ISpatialEntity>();
+        
+        foreach (var e in _entities)
+        {
+            switch (e)
+            {
+                case MonoBehaviour me:
+                {
+                    if (me)
+                    {
+                        result.Add(e);
+                    }
+
+                    continue;
+                }
+                
+                case ScriptableObject se:
+                {
+                    if (se)
+                    {
+                        result.Add(e);
+                    }
+
+                    continue;
+                }
+            }
+
+            if (e != null)
+            {
+                result.Add(e);
+            }
+        }
+
+        result.TrimExcess();
+        _entities = result;
     }
 }

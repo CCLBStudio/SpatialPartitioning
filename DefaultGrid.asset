@@ -15,5 +15,6 @@ MonoBehaviour:
   axis: 0
   cellSize: 1
   autoInitialize: 1
+  automaticCheckForNullEntities: 0
   requireDebugDataDisplay: 1
   debugGrid: []
