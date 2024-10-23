@@ -14,7 +14,7 @@ public class SpatialGrid : ScriptableObject
     [Tooltip("The grid axis, determining how the spatial checks will be performed.")]
     [SerializeField] private SpatialGridAxis axis = SpatialGridAxis.XZ;
     [Tooltip("The size of each cell of the grid.")]
-    [Range(1, 20)][SerializeField] private int cellSize = 1;
+    [Min(1)][SerializeField] private int cellSize = 1;
     [Tooltip("If TRUE, the grid will initialize itself during the OnEnable method.")]
     [SerializeField] private bool autoInitialize = true;
     [Tooltip("If TRUE, everytime you ask for the entities inside a cell it will first perform a check to remove any null entity. Less performant but simpler to use. For better performance, every entity should remove itself from its cell before being destroyed.")]
