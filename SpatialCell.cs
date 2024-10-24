@@ -12,6 +12,7 @@ public class SpatialCell
     #endif
 
     public List<ISpatialEntity> Entities => GetEntities();
+    public int EntityCount => GetEntities().Count;
     public Vector2Int Coordinates { get; private set; }
     public Vector3 Center { get; private set; }
     public Vector3 Min { get; private set; }
