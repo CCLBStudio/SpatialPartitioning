@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using CCLBStudio.SpatialPartitioning;
+using CCLBStudio.SpatialPartitioning.Grid;
 using UnityEngine;
 
 public class SimpleGridTurret : MonoBehaviour
@@ -16,7 +18,7 @@ public class SimpleGridTurret : MonoBehaviour
     [SerializeField] private Transform lookAtPivot;
     [SerializeField] private Transform shootingPoint;
 
-    private List<SpatialCell> _cellsInRange = new();
+    private List<SpatialGridCell> _cellsInRange = new();
     private float _shootingTimer;
     private SimpleEnemy _currentTarget;
 
@@ -94,9 +96,9 @@ public class SimpleGridTurret : MonoBehaviour
         {
             Vector3 center = grid.Axis switch
             {
-                SpatialGridAxis.XZ => new Vector3(cell.Coordinates.x + halfCellSize, 0f, cell.Coordinates.y + halfCellSize),
-                SpatialGridAxis.XY => new Vector3(cell.Coordinates.x + halfCellSize, cell.Coordinates.y + halfCellSize, 0f),
-                SpatialGridAxis.YZ => new Vector3(0f, cell.Coordinates.x + halfCellSize, cell.Coordinates.y + halfCellSize),
+                SpatialAxis.XZ => new Vector3(cell.Coordinates.x + halfCellSize, 0f, cell.Coordinates.y + halfCellSize),
+                SpatialAxis.XY => new Vector3(cell.Coordinates.x + halfCellSize, cell.Coordinates.y + halfCellSize, 0f),
+                SpatialAxis.YZ => new Vector3(0f, cell.Coordinates.x + halfCellSize, cell.Coordinates.y + halfCellSize),
                 _ => throw new ArgumentOutOfRangeException()
             };
             Gizmos.DrawSphere(center, cell.Size / 3f);

@@ -1,8 +1,9 @@
+using CCLBStudio.SpatialPartitioning.Grid;
 using UnityEngine;
 
-public class SimpleEnemy : MonoBehaviour, ISpatialEntity
+public class SimpleEnemy : MonoBehaviour, ISpatialGridEntity
 {
-    public SpatialCell CurrentCell { get; set; }
+    public SpatialGridCell CurrentGridCell { get; set; }
 
     [SerializeField] private SpatialGrid grid;
     [SerializeField] private Vector2 minMaxWander;
@@ -39,7 +40,7 @@ public class SimpleEnemy : MonoBehaviour, ISpatialEntity
         if (health <= 0)
         {
             _isDead = true;
-            CurrentCell?.RemoveEntity(this);
+            CurrentGridCell?.RemoveEntity(this);
             Destroy(gameObject);
         }
     }
